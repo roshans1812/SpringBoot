@@ -1,9 +1,12 @@
 package com.ro.products.controller;
 
 
+import static org.hamcrest.CoreMatchers.instanceOf;
+
 import java.net.URISyntaxException;
 import java.util.Collection;
 import javax.validation.Valid;
+import javax.validation.constraints.Pattern;
 import javax.ws.rs.core.Response;
 
 
@@ -15,48 +18,53 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-import com.ro.products.dao.IProductsRepository;
+import com.ro.products.dao.IProductRepository;
 import com.ro.products.entity.Products;
 import com.ro.products.exception.DBException;
 import com.ro.products.exception.URIException;
+import com.ro.products.service.IProductService;
 import com.ro.products.service.ProductService;
 
 
 
-@RestController
+@RestController(value="/products")
 public class ProductsController {
+
 	
 	@Autowired
-	private ProductService productService;
+	private IProductService productService;
 	
-	@Autowired
-	private IProductsRepository productsRepository;
-		@GetMapping("/hellojsp")
-		public String init() {
-			return "true";
-		}
+
+
 		
-		@RequestMapping(value="/products",method=RequestMethod.GET,produces= {"application/json","application/xml"})
+		@RequestMapping(method=RequestMethod.GET,produces= {"application/json","application/xml"})
 		public @ResponseBody Collection<Products> getAllProduct(){
 			return productService.getProducts();
 		}
 		
-		@RequestMapping(value="/products/{productId}",method=RequestMethod.GET,produces= {"application/json","application/xml"})
-		public @ResponseBody Products getProduct(@PathVariable("productId") int productid) throws URIException{
+		@RequestMapping(value="/product/{productId}",method=RequestMethod.GET,produces= {"application/json","application/xml"})
+		public @ResponseBody Products getProduct(@Valid @Pattern(regexp="(0?[1-9]*)",message="Enter only int value for ProductId")@PathVariable("productId") int productid) throws URIException{
 			if((Integer)productid==null) {
 				throw new URIException("Enter productId to retrieve product details"); 
-			}else {
-					Products product =  productService.getProduct(productid);
-					if(product==null) {
-						throw new URIException("No product found with Id:"+productid);
-						}else {
-							return product;
-						}
+			}/*else if(Integer.parseInt(productid.toString())) {
+				throw new URIException("Enter productId to retrieve product details"); */
+			//}
+			if(productid>=0) {
+				Products product =  productService.getProduct(productid);
+				if(product==null) {
+					throw new URIException("No product found with Id:"+productid);
+					}else {
+						return product;
+					}				
 			}
+			else {
+				throw new URIException("Enter proper value for Product_Id. Only numbers are allowed."); 
+			}
+
 		}
 		
 
-		@RequestMapping(value="/products",method=RequestMethod.POST,consumes="application/json")
+		@RequestMapping(value="/product",method=RequestMethod.POST,consumes="application/json")
 		public Response createProduct(@Valid @RequestBody Products product) throws URISyntaxException{
 			if((Integer)product.getProductId()==null||product.getProductName()==null||(Double)product.getProductPrice()==null) {
 				return Response.status(400).entity("Please provide all mandatory inputs").build(); 
@@ -68,7 +76,7 @@ public class ProductsController {
 			
 		}
 		
-		@RequestMapping(value="/products/{productId}",method=RequestMethod.PUT,consumes="application/json",produces= {"application/json"})
+		@RequestMapping(value="/product/{productId}",method=RequestMethod.PUT,consumes="application/json",produces= {"application/json"})
 		public Response  updateProduct(@PathVariable("productId") int productId,@Valid @RequestBody Products product) throws URIException{
 			if((Integer)productId==null) 
 				throw new URIException("Enter productId in URL to perform update"); 
@@ -84,7 +92,7 @@ public class ProductsController {
 		}
 			
 		
-		@RequestMapping(value="/products/{productId}",method=RequestMethod.DELETE)
+		@RequestMapping(value="/product/{productId}",method=RequestMethod.DELETE)
 		public Response deleteProduct(@PathVariable("productId") int productid) throws URIException{
 			if((Integer)productid==null) {
 				throw new URIException("Enter productId to delete product details"); 

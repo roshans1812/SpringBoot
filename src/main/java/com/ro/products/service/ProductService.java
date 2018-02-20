@@ -6,42 +6,41 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.ro.products.dao.IProductsRepository;
 
+import com.ro.products.dao.IProductRepository;
 import com.ro.products.entity.Products;
 
 @Service
-public class ProductService {
+public class ProductService implements IProductService{
 
 	@Autowired
-	private IProductsRepository productsRepository;
+	private IProductRepository productRepository;
 
-	public Collection<Products> getProducts() {
-		List<Products> products = new ArrayList<Products>();
+	public Collection<Products> getProducts() {// 
+		/*List<Products> products = new ArrayList<Products>();
 		for (Products product : productsRepository.findAll()) {
 			products.add(product);
-		}
-		return products;
+		}*/
+		return productRepository.getProducts();
 
 	}
 
-	public Products getProduct(int id) {
-		return productsRepository.findOne(id);
+	public Products getProduct(int productId){		
+		return productRepository.getProduct(productId);
 	}
 
-/*	public void createProduct(int Pid, String pName, double pPrice) {
-		Products prod = new Products(Pid, pName, pPrice);*/
+
 	public Products createProduct(Products product){
-		return productsRepository.save(product);
+		return productRepository.createProduct(product);
 	}
 	
 	public Products updateProduct(Products product){
 		
-		return productsRepository.save(product);
+		return productRepository.updateProduct(product);
 	}
 	
-	public void deleteProduct(int id) {
-		productsRepository.delete(id);
+	public void deleteProduct(int productId) {
+		productRepository.deleteProduct(productId);
 	}
 
 }
